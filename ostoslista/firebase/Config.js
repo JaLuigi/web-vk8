@@ -1,8 +1,8 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"
+import { initializeApp } from "firebase/app"
+import { getFirestore, collection,addDoc,serverTimestamp } from "firebase/firestore"
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC3GY10JCd6Xjq0a0335CdaqEXj07CuYzo",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: "ostoslista-2cee5.firebaseapp.com",
   projectId: "ostoslista-2cee5",
   storageBucket: "ostoslista-2cee5.appspot.com",
@@ -10,11 +10,17 @@ const firebaseConfig = {
   appId: "1:294332066783:web:54b22cddd104832c38b26a"
 };
 
-const app = initializeApp(firebaseConfig);
+initializeApp(firebaseConfig);
 
 const firestore = getFirestore();
 
+const MESSAGES = 'messages';
+
 export {
-    firestore
+    firestore,
+    collection,
+    addDoc,
+    serverTimestamp,
+    MESSAGES
 }
 

@@ -1,5 +1,5 @@
 import { View, Text, TextInput, SafeAreaView, Button, StyleSheet  } from 'react-native'
-import { addDoc, collection, Firestore, MESSAGES } from 'firebase/firestore'
+import { addDoc, collection, Firestore, MESSAGES, serverTimestamp } from 'firebase/firestore'
 import React, { useState } from 'react'
 import { firestore } from '../firebase/Config';
 
@@ -8,9 +8,11 @@ export default function addTask() {
 
     const save = async () => {
         const docRef = await addDoc(collection(firestore, MESSAGES), {
-            text: newTask
-        })
-        setNewTask('') 
+            text: newTask,
+            created: serverTimestamp()
+        }). catch (error => console.log(error));
+        setNewTask('')
+        console.log('Task save') 
     }
 
   return (
