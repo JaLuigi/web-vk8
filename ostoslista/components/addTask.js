@@ -1,7 +1,8 @@
-import { View, Text, TextInput, SafeAreaView, Button, StyleSheet, ScrollView } from 'react-native';
-import { addDoc, collection, onSnapshot, query, serverTimestamp } from 'firebase/firestore';
+import { View, Text, TextInput, SafeAreaView, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { addDoc, collection, onSnapshot, query, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { firestore, MESSAGES } from '../firebase/Config';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function AddTask() {
     const [newTask, setNewTask] = useState([]);
@@ -15,6 +16,15 @@ export default function AddTask() {
             });
             setNewBuy('');
             console.log('Task saved', docRef.id);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const deleteItem = async (id) => {
+        try {
+            await deleteDoc(doc(firestore, MESSAGES, id));
+            console.log('Task deleted', id);
         } catch (error) {
             console.log(error);
         }
@@ -36,23 +46,25 @@ export default function AddTask() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <Text style={styles.title}>OstosLista</Text>
             <View style={styles.header}>
                 <TextInput
                     placeholder="Add new item..."
-                    value={newBuy} 
+                    value={newBuy}
                     onChangeText={(text) => setNewBuy(text)}
                     style={styles.input}
                 />
                 <Button title="Save" onPress={save} />
             </View>
-            <ScrollView>
-                {
-                    newTask.map((task) => (
-                        <View key={task.id} style={styles.message}>
-                            <Text>{task.text}</Text>
-                        </View>
-                    ))
-                }
+            <ScrollView style={styles.scroll}>
+                {newTask.map((task) => (
+                    <View key={task.id} style={styles.message}>
+                        <Text style={styles.messageText}>{task.text}</Text>
+                        <TouchableOpacity onPress={() => deleteItem(task.id)}>
+                            <Icon name="delete" size={24} color="red" />
+                        </TouchableOpacity>
+                    </View>
+                ))}
             </ScrollView>
         </SafeAreaView>
     );
@@ -62,15 +74,19 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        alignItems: 'center',
         justifyContent: 'flex-start',
-        margin: 8
+        padding: 8,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        textAlign: 'left',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        marginTop: 16,
         marginBottom: 16,
     },
     input: {
@@ -79,12 +95,22 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 8,
     },
+    scroll: {
+        width: '100%',
+    },
     message: {
-        margin: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
         padding: 10,
         backgroundColor: '#f5f5f5',
         borderColor: '#ccc',
         borderWidth: 1,
         borderRadius: 5,
-    }
+        marginVertical: 4,
+    },
+    messageText: {
+        flex: 1,
+    },
 });
