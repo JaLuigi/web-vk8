@@ -1,35 +1,59 @@
-import { View, Text, TextInput, SafeAreaView, Button, StyleSheet } from 'react-native';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import React, { useState } from 'react';
-import { firestore } from '../firebase/Config';
+import { View, Text, TextInput, SafeAreaView, Button, StyleSheet, ScrollView } from 'react-native';
+import { addDoc, collection, onSnapshot, query, serverTimestamp } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { firestore, MESSAGES } from '../firebase/Config';
 
 export default function AddTask() {
-    const [newTask, setNewTask] = useState('');
+    const [newTask, setNewTask] = useState([]);
+    const [newBuy, setNewBuy] = useState('');
 
     const save = async () => {
         try {
-            const docRef = await addDoc(collection(firestore, 'MESSAGES'), {
-                text: newTask,
+            const docRef = await addDoc(collection(firestore, MESSAGES), {
+                text: newBuy,
                 created: serverTimestamp()
             });
-            setNewTask('');
+            setNewBuy('');
             console.log('Task saved', docRef.id);
         } catch (error) {
             console.log(error);
         }
     };
 
+    useEffect(() => {
+        const q = query(collection(firestore, MESSAGES));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const tempMessages = [];
+            querySnapshot.forEach((doc) => {
+                tempMessages.push({ ...doc.data(), id: doc.id });
+            });
+            setNewTask(tempMessages);
+        });
+        return () => {
+            unsubscribe();
+        };
+    }, []);
+
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.form}>
+            <View style={styles.header}>
                 <TextInput
-                    placeholder='Add new item....'
-                    value={newTask}
-                    onChangeText={text => setNewTask(text)}
+                    placeholder="Add new item..."
+                    value={newBuy} 
+                    onChangeText={(text) => setNewBuy(text)}
                     style={styles.input}
                 />
                 <Button title="Save" onPress={save} />
             </View>
+            <ScrollView>
+                {
+                    newTask.map((task) => (
+                        <View key={task.id} style={styles.message}>
+                            <Text>{task.text}</Text>
+                        </View>
+                    ))
+                }
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -43,12 +67,6 @@ const styles = StyleSheet.create({
         margin: 8
     },
     header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 16,
-        textAlign: 'center'
-    },
-    form: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
@@ -61,4 +79,12 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 8,
     },
+    message: {
+        margin: 10,
+        padding: 10,
+        backgroundColor: '#f5f5f5',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+    }
 });
